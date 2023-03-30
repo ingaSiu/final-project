@@ -264,3 +264,25 @@ app.put('/answer/:id', auth, async (req, res) => {
     return res.status(500).send({ error });
   }
 });
+
+// DELETE answer
+
+app.delete('/answer/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    const filter = { _id: ObjectId(id), userId: userId };
+    const con = await client.connect();
+    const data = await con.db('final-project').collection('answers').deleteOne(filter);
+
+    if (data.deletedCount && data.deletedCount > 0) {
+      return res.status(204).send();
+    }
+    if (data.deletedCount === 0) {
+      return res.status(404).send();
+    }
+    return res.status(500).send({ error: 'Data could not be deleted.' });
+  } catch (error) {
+    return res.status(500).send({ error: error.toString() });
+  }
+});
