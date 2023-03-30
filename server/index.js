@@ -127,7 +127,6 @@ app.post('/question', auth, async (req, res) => {
       title: title,
       question: question,
       userId: userId,
-      rating: 0,
       createdAt: Date.now(),
       updatedAt: null,
     });
@@ -161,7 +160,6 @@ app.put('/question/:id', auth, async (req, res) => {
       title: title,
       question: question,
       userId: existingQuestion.userId,
-      rating: existingQuestion.rating,
       createdAt: existingQuestion.createdAt,
       updatedAt: Date.now(),
     };
@@ -193,5 +191,40 @@ app.delete('/question/:id', auth, async (req, res) => {
     return res.status(500).send({ error: 'Data could not be deleted.' });
   } catch (error) {
     return res.status(500).send({ error: error.toString() });
+  }
+});
+
+// POST answer
+
+app.post('/question/:id/answers', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    const filter = { _id: ObjectId(id), userId: userId };
+    const con = await client.connect();
+
+    const { answer } = req.body;
+
+    if (!answer) {
+      return res.status(400).send({ error: 'Bad data.' });
+    }
+    const existingQuestion = await con.db('final-project').collection('questions').findOne(filter);
+
+    if (!existingQuestion) {
+      return res.status(404).send({ error: 'Question with given ID does not exist.' });
+    }
+
+    const data = await con.db('final-project').collection('answers').insertOne({
+      answer: answer,
+      userId: userId,
+      questionId: id,
+      rating: 0,
+      createdAt: Date.now(),
+      updatedAt: null,
+    });
+    await con.close();
+    return res.send(data);
+  } catch (error) {
+    return res.status(500).send({ error });
   }
 });
