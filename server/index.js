@@ -132,8 +132,66 @@ app.post('/question', auth, async (req, res) => {
       updatedAt: null,
     });
     await con.close();
-    res.send(data);
+    return res.send(data);
   } catch (error) {
-    res.status(500).send({ error });
+    return res.status(500).send({ error });
+  }
+});
+
+// PUT question
+
+app.put('/question/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    const filter = { _id: ObjectId(id), userId: userId };
+    const { title, question } = req.body;
+
+    if (!(title && question)) {
+      return res.status(400).send('All input is required');
+    }
+
+    const con = await client.connect();
+    const existingQuestion = await con.db('final-project').collection('questions').findOne(filter);
+    console.log(existingQuestion);
+    if (!existingQuestion) {
+      return res.status(404).send({ error: 'Question with given ID does not exist.' });
+    }
+    const updateObj = {
+      title: title,
+      question: question,
+      userId: existingQuestion.userId,
+      rating: existingQuestion.rating,
+      createdAt: existingQuestion.createdAt,
+      updatedAt: Date.now(),
+    };
+
+    const data = await con.db('final-project').collection('questions').updateOne(filter, { $set: updateObj });
+    await con.close();
+    return res.send(data);
+  } catch (error) {
+    return res.status(500).send({ error });
+  }
+});
+
+// DELETE question
+
+app.delete('/question/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    const filter = { _id: ObjectId(id), userId: userId };
+    const con = await client.connect();
+    const data = await con.db('final-project').collection('questions').deleteOne(filter);
+
+    if (data.deletedCount && data.deletedCount > 0) {
+      return res.status(204).send();
+    }
+    if (data.deletedCount === 0) {
+      return res.status(404).send();
+    }
+    return res.status(500).send({ error: 'Data could not be deleted.' });
+  } catch (error) {
+    return res.status(500).send({ error: error.toString() });
   }
 });
