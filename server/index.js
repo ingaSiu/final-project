@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const auth = require('./middleware/auth');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -35,7 +36,7 @@ process.on('SIGINT', () => {
 
 // get users
 
-app.get('/', async (req, res) => {
+app.get('/', auth, async (req, res) => {
   try {
     const con = await client.connect();
     const data = await con.db('final-project').collection('users').find().toArray();
@@ -65,20 +66,20 @@ app.post('/register', async (req, res) => {
 
     encryptedPassword = await bcrypt.hash(password, 10);
 
-    const token = jwt.sign({ user_id: user._id, username }, process.env.TOKEN_KEY, {
+    const insertResponse = await con.db('final-project').collection('users').insertOne({
+      username: username,
+      password: encryptedPassword,
+    });
+
+    const token = jwt.sign({ userId: insertResponse.insertedId.toString(), username }, process.env.TOKEN_KEY, {
       expiresIn: '2h',
     });
 
-    const user = await con.db('final-project').collection('users').insertOne({
-      username: username,
-      password: encryptedPassword,
-      token: token,
-    });
-
     await con.close();
-    res.status(201).json(token);
+    return res.status(201).json(token);
   } catch (error) {
-    res.status(500).send({ error });
+    console.log(error);
+    return res.status(500).send({ error });
   }
 });
 
@@ -86,6 +87,7 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   try {
+    const con = await client.connect();
     const { username, password } = req.body;
 
     if (!(username && password)) {
@@ -95,16 +97,9 @@ app.post('/login', async (req, res) => {
     const existingUser = await con.db('final-project').collection('users').findOne(filter);
 
     if (existingUser && (await bcrypt.compare(password, existingUser.password))) {
-      const token = jwt.sign({ user_id: user._id, username }, process.env.TOKEN_KEY, {
+      const token = jwt.sign({ userId: existingUser._id, username }, process.env.TOKEN_KEY, {
         expiresIn: '2h',
       });
-      const updateObj = {
-        username: existingUser.username,
-        password: existingUser.password,
-        token: token,
-      };
-
-      await con.db('final-project').collection('users').updateOne(filter, { $set: updateObj });
 
       return res.status(200).json(token);
     }
@@ -113,5 +108,32 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).send('Server error');
+  }
+});
+
+// POST question
+
+app.post('/question', auth, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { title, question } = req.body;
+
+    if (!(title && question)) {
+      return res.status(400).send('All input is required');
+    }
+
+    const con = await client.connect();
+    const data = await con.db('final-project').collection('questions').insertOne({
+      title: title,
+      question: question,
+      userId: userId,
+      rating: 0,
+      createdAt: Date.now(),
+      updatedAt: null,
+    });
+    await con.close();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error });
   }
 });
