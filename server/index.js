@@ -228,3 +228,39 @@ app.post('/question/:id/answers', auth, async (req, res) => {
     return res.status(500).send({ error });
   }
 });
+
+// PUT answer
+
+app.put('/answer/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user;
+    const filter = { _id: ObjectId(id), userId: userId };
+    const { answer } = req.body;
+
+    if (!answer) {
+      return res.status(400).send('Answer is required');
+    }
+
+    const con = await client.connect();
+    const existingAnswer = await con.db('final-project').collection('answers').findOne(filter);
+    console.log(existingAnswer);
+    if (!existingAnswer) {
+      return res.status(404).send({ error: 'Answer with given ID does not exist.' });
+    }
+    const updateObj = {
+      answer: answer,
+      userId: existingAnswer.userId,
+      questionId: existingAnswer.questionId,
+      rating: existingAnswer.rating,
+      createdAt: existingAnswer.createdAt,
+      updatedAt: Date.now(),
+    };
+
+    const data = await con.db('final-project').collection('answers').updateOne(filter, { $set: updateObj });
+    await con.close();
+    return res.send(data);
+  } catch (error) {
+    return res.status(500).send({ error });
+  }
+});
