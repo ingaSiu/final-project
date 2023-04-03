@@ -123,13 +123,16 @@ app.post('/question', auth, async (req, res) => {
     }
 
     const con = await client.connect();
-    const data = await con.db('final-project').collection('questions').insertOne({
-      title: title,
-      question: question,
-      userId: userId,
-      createdAt: Date.now(),
-      updatedAt: null,
-    });
+    const data = await con
+      .db('final-project')
+      .collection('questions')
+      .insertOne({
+        title: title,
+        question: question,
+        userId: ObjectId(userId),
+        createdAt: Date.now(),
+        updatedAt: null,
+      });
     await con.close();
     return res.send(data);
   } catch (error) {
@@ -142,8 +145,9 @@ app.post('/question', auth, async (req, res) => {
 app.put('/question/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
+    //this is injected from auth middleware
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: userId };
+    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const { title, question } = req.body;
 
     if (!(title && question)) {
@@ -159,7 +163,7 @@ app.put('/question/:id', auth, async (req, res) => {
     const updateObj = {
       title: title,
       question: question,
-      userId: existingQuestion.userId,
+      userId: ObjectId(existingQuestion.userId),
       createdAt: existingQuestion.createdAt,
       updatedAt: Date.now(),
     };
@@ -178,7 +182,7 @@ app.delete('/question/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: userId };
+    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const con = await client.connect();
     const data = await con.db('final-project').collection('questions').deleteOne(filter);
 
@@ -200,7 +204,7 @@ app.post('/question/:id/answers', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: userId };
+    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const con = await client.connect();
 
     const { answer } = req.body;
@@ -214,14 +218,17 @@ app.post('/question/:id/answers', auth, async (req, res) => {
       return res.status(404).send({ error: 'Question with given ID does not exist.' });
     }
 
-    const data = await con.db('final-project').collection('answers').insertOne({
-      answer: answer,
-      userId: userId,
-      questionId: id,
-      rating: 0,
-      createdAt: Date.now(),
-      updatedAt: null,
-    });
+    const data = await con
+      .db('final-project')
+      .collection('answers')
+      .insertOne({
+        answer: answer,
+        userId: ObjectId(userId),
+        questionId: ObjectId(id),
+        rating: 0,
+        createdAt: Date.now(),
+        updatedAt: null,
+      });
     await con.close();
     return res.send(data);
   } catch (error) {
@@ -235,7 +242,7 @@ app.put('/answer/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: userId };
+    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const { answer } = req.body;
 
     if (!answer) {
@@ -250,8 +257,8 @@ app.put('/answer/:id', auth, async (req, res) => {
     }
     const updateObj = {
       answer: answer,
-      userId: existingAnswer.userId,
-      questionId: existingAnswer.questionId,
+      userId: ObjectId(existingAnswer.userId),
+      questionId: ObjectId(existingAnswer.questionId),
       rating: existingAnswer.rating,
       createdAt: existingAnswer.createdAt,
       updatedAt: Date.now(),
@@ -271,7 +278,7 @@ app.delete('/answer/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: userId };
+    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const con = await client.connect();
     const data = await con.db('final-project').collection('answers').deleteOne(filter);
 
@@ -282,6 +289,131 @@ app.delete('/answer/:id', auth, async (req, res) => {
       return res.status(404).send();
     }
     return res.status(500).send({ error: 'Data could not be deleted.' });
+  } catch (error) {
+    return res.status(500).send({ error: error.toString() });
+  }
+});
+
+// get questions
+//TODO sorting, filtering
+app.get('/questions', async (req, res) => {
+  try {
+    const { sortDate, sortAnswer, answeredFilter } = req.query;
+    let sortObj = {};
+    if (sortDate) {
+      sortObj = { ...sortObj, ...{ createdAt: sortDate === 'dsc' ? -1 : 1 } };
+    }
+    if (sortAnswer) {
+      sortObj = { ...sortObj, ...{ answerCount: sortAnswer === 'dsc' ? -1 : 1 } };
+    }
+
+    const con = await client.connect();
+    let data = await con
+      .db('final-project')
+      .collection('questions')
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $lookup: {
+            from: 'answers',
+            localField: '_id',
+            foreignField: 'questionId',
+            as: 'answers',
+          },
+        },
+        {
+          $project: {
+            _id: '$_id',
+            title: '$title',
+            question: '$question',
+            userId: '$userId',
+            createdAt: '$createdAt',
+            updatedAt: '$updatedAt',
+            username: { $first: '$user.username' },
+            answerCount: { $size: '$answers' },
+          },
+        },
+      ])
+      .sort(sortAnswer || sortDate ? sortObj : null)
+      .toArray();
+
+    if (answeredFilter === 'false') {
+      data = data.filter((question) => question.answerCount === 0);
+    } else if (answeredFilter) {
+      data = data.filter((question) => question.answerCount > 0);
+    }
+    return res.send(data);
+  } catch (error) {
+    return res.status(500).send({ error: error.toString() });
+  }
+});
+
+// get question with answers
+
+app.get('/questions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filter = { _id: ObjectId(id) };
+
+    const con = await client.connect();
+    const question = await con.db('final-project').collection('questions').findOne(filter);
+    if (!question) {
+      return res.status(404).send({ error: 'Question with given ID does not exist.' });
+    }
+
+    const user = await con
+      .db('final-project')
+      .collection('users')
+      .findOne({ _id: ObjectId(question.userId) });
+
+    const answers = await con
+      .db('final-project')
+      .collection('answers')
+      .aggregate([
+        {
+          $match: { questionId: ObjectId(question._id) },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $project: {
+            _id: '$_id',
+            answer: '$answer',
+            userId: '$userId',
+            rating: '$rating',
+            createdAt: '$createdAt',
+            updatedAt: '$updatedAt',
+            username: { $first: '$user.username' },
+          },
+        },
+      ])
+      .toArray();
+
+    const data = {
+      _id: question._id,
+      title: question.title,
+      question: question.question,
+      userId: question.userId,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      username: user ? user.username : null,
+      answersCount: answers.length,
+      answers: answers ? answers : [],
+    };
+    return res.send(data);
   } catch (error) {
     return res.status(500).send({ error: error.toString() });
   }
