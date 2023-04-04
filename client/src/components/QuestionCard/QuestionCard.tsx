@@ -24,29 +24,24 @@ const QuestionCard = ({ title, username, createdAt, answerCount, questionId }: Q
 
       <UserWrapper>
         {username}
-        asked: {createdAt}
+        <span>asked: {createdAt}</span>
       </UserWrapper>
     </CardWrapper>
   );
 };
-
-// to make a link
-{
-  /* <ButtonLink to={generatePath(RECIPE_PAGE_PATH, { recipeId })}>
-        <ButtonMain>Read more →</ButtonMain>
-      </ButtonLink> */
-}
 
 export default QuestionCard;
 
 const CardWrapper = styled.div`
   padding: 5px;
   border: 1px solid black;
-  width: 700px;
+  width: 100%;
+  border-radius: 4px;
 `;
 
 const Title = styled(Link)`
   font-size: 20px;
+  text-transform: uppercase;
 `;
 const TitleWrapper = styled.div`
   padding: 5px;
@@ -54,6 +49,10 @@ const TitleWrapper = styled.div`
 
 const UserWrapper = styled.div`
   padding: 5px;
+
+  span {
+    padding-left: 4px;
+  }
 `;
 
 const CountWrapper = styled.div`

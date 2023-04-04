@@ -24,13 +24,17 @@ export default QuestionBoard;
 const BoardWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  border-left: 1px solid black;
+  width: 100%;
+  margin: 16px;
 `;
 
 const Details = styled.div`
   display: flex;
+  justify-content: space-evenly;
   align-items: center;
-  gap: 10px;
+  align-content: center;
+
+  gap: 16px;
 `;
 
 const Title = styled.div`
