@@ -308,7 +308,7 @@ app.get('/questions', async (req, res) => {
     }
 
     const con = await client.connect();
-    let data = await con
+    let data = con
       .db('final-project')
       .collection('questions')
       .aggregate([
@@ -340,9 +340,13 @@ app.get('/questions', async (req, res) => {
             answerCount: { $size: '$answers' },
           },
         },
-      ])
-      .sort(sortAnswer || sortDate ? sortObj : null)
-      .toArray();
+      ]);
+
+    if (sortAnswer || sortDate) {
+      data = data.sort(sortObj);
+    }
+
+    data = await data.toArray();
 
     if (answeredFilter === 'false') {
       data = data.filter((question) => question.answerCount === 0);
