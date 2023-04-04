@@ -29,6 +29,7 @@ const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  //TODO navigate to home if user is logged in
 
   const handleSubmit = (values: User) => {
     login(values)
@@ -74,9 +75,9 @@ const StyledForm = styled(Form)`
   gap: 16px;
   justify-content: center;
   padding: 32px;
-  border: 1px solid ${MainGreen};
+
   border-radius: 4px;
-  width: 500px;
+  width: 400px;
 `;
 
 const InputRow = styled.div`

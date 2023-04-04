@@ -53,7 +53,7 @@ const RegisterForm = () => {
           <StyledForm>
             <InputRow>
               <InputRowItem>
-                <FormikInput name="username" placeholder="Your username" />
+                <FormikInput name="username" placeholder="Username" />
               </InputRowItem>
             </InputRow>
 
@@ -82,7 +82,7 @@ const RegisterForm = () => {
 export default RegisterForm;
 
 const StyledFormContainer = styled.div`
-  max-height: 500px;
+  /* max-height: 500px; */
   overflow-y: auto;
 `;
 
@@ -92,9 +92,8 @@ const StyledForm = styled(Form)`
   gap: 16px;
   justify-content: center;
   padding: 32px;
-  border: 1px solid ${MainGreen};
   border-radius: 4px;
-  width: 500px;
+  width: 400px;
 `;
 
 const InputRow = styled.div`
