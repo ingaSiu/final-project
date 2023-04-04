@@ -34,9 +34,11 @@ const AddQuestionForm = () => {
 
   const handleSubmit = (values: Question, { resetForm }: FormikFormProps) => {
     createPost(values)
-      .then(() => {
+      .then((response) => {
+        console.log(response);
         toast.success('Question created successfully');
-        resetForm();
+        //TODO change with variable
+        navigate('/question/' + response.insertedId);
       })
       .catch((error) => {
         if (error.response.status === 401) {
@@ -71,9 +73,8 @@ export default AddQuestionForm;
 
 const StyledFormContainer = styled.div`
   max-height: 500px;
-  width: 400px;
+  width: 600px;
   overflow-y: auto;
-  border: 1px solid ${MainGreen};
   border-radius: 4px;
   display: flex;
   justify-content: center;
@@ -82,6 +83,7 @@ const StyledFormContainer = styled.div`
 const StyledForm = styled(Form)`
   display: flex;
   flex-direction: column;
+
   gap: 16px;
   justify-content: center;
   padding: 32px;
