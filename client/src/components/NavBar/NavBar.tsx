@@ -7,7 +7,11 @@ import styled from 'styled-components';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const NavBar = () => {
+type NavbarProps = {
+  username: string;
+};
+
+const NavBar = ({ username }: NavbarProps) => {
   const navigate = useNavigate();
   const { handleLogOut, isLoggedIn } = useContext(UserContext);
   return (
@@ -28,11 +32,10 @@ const NavBar = () => {
       {isLoggedIn && (
         <>
           <ItemsContainerUser>
-            <Greeting>Hello user</Greeting>
-          </ItemsContainerUser>
-          <BtnWrapper>
+            <Greeting>Hello, {username}</Greeting>
+
             <Button title="Log out" onClick={handleLogOut} />
-          </BtnWrapper>
+          </ItemsContainerUser>
         </>
       )}
     </Wrapper>
@@ -53,13 +56,15 @@ const ItemsContainer = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: center;
 `;
 
 const ItemsContainerUser = styled.div`
-  border: 1px solid black;
   display: flex;
-  gap: 10px;
+  gap: 30px;
   align-items: center;
+  justify-content: space-around;
+  width: 30%;
 `;
 
 const IconContainer = styled.div`
@@ -70,10 +75,6 @@ const IconContainer = styled.div`
 
 const Greeting = styled.p`
   font-size: 30px;
-`;
-
-const BtnWrapper = styled.div`
-  /* margin-bottom: 15px; */
 `;
 
 const IconText = styled.span`
