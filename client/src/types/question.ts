@@ -8,7 +8,7 @@ export type Question = {
   createdAt?: number | string;
   updatedAt?: null | number;
   username?: string;
-  answerCount?: number;
+  answersCount?: number;
 };
 
 export type QuestionWithAnswers = Question & Answer[];
