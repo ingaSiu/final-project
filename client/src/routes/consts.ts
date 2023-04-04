@@ -8,16 +8,16 @@ import Register from '../pages/Register/Register';
 export const HOME_PATH = '/';
 export const LOGIN_PATH = '/login';
 export const REGISTER_PATH = '/register';
-export const QUESTION_PAGE_PATH = '/question/:id';
+export const QUESTION_PAGE_PATH = '/question/:questionId';
 export const ADD_QUESTION_PATH = '/addquestion';
 
 export const mainLayoutRoutes = {
   Layout: MainLayout,
   routes: [
+    { path: REGISTER_PATH, Component: Register },
+    { path: LOGIN_PATH, Component: Login },
     { path: HOME_PATH, Component: Home },
     { path: QUESTION_PAGE_PATH, Component: QuestionPage },
     { path: ADD_QUESTION_PATH, Component: AddQuestion },
-    { path: REGISTER_PATH, Component: Register },
-    { path: LOGIN_PATH, Component: Login },
   ],
 };
