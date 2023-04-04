@@ -6,6 +6,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('./middleware/auth');
+const authNoBlock = require('./middleware/authNoBlock');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -75,7 +76,6 @@ app.post('/register', async (req, res) => {
       expiresIn: '2h',
     });
 
-    await con.close();
     return res.status(201).json(token);
   } catch (error) {
     console.log(error);
@@ -133,7 +133,7 @@ app.post('/question', auth, async (req, res) => {
         createdAt: Date.now(),
         updatedAt: null,
       });
-    await con.close();
+
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ error });
@@ -169,7 +169,7 @@ app.put('/question/:id', auth, async (req, res) => {
     };
 
     const data = await con.db('final-project').collection('questions').updateOne(filter, { $set: updateObj });
-    await con.close();
+
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ error });
@@ -229,7 +229,7 @@ app.post('/question/:id/answers', auth, async (req, res) => {
         createdAt: Date.now(),
         updatedAt: null,
       });
-    await con.close();
+
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ error });
@@ -265,7 +265,7 @@ app.put('/answer/:id', auth, async (req, res) => {
     };
 
     const data = await con.db('final-project').collection('answers').updateOne(filter, { $set: updateObj });
-    await con.close();
+
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ error });
@@ -295,7 +295,7 @@ app.delete('/answer/:id', auth, async (req, res) => {
 });
 
 // get questions
-//TODO sorting, filtering
+//TODO filtering BEFORE sorting
 app.get('/questions', async (req, res) => {
   try {
     const { sortDate, sortAnswer, answeredFilter } = req.query;
@@ -307,52 +307,59 @@ app.get('/questions', async (req, res) => {
       sortObj = { ...sortObj, ...{ answerCount: sortAnswer === 'dsc' ? -1 : 1 } };
     }
 
+    let aggregateArr = [
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      {
+        $lookup: {
+          from: 'answers',
+          localField: '_id',
+          foreignField: 'questionId',
+          as: 'answers',
+        },
+      },
+      {
+        $project: {
+          _id: '$_id',
+          title: '$title',
+          question: '$question',
+          userId: '$userId',
+          createdAt: '$createdAt',
+          updatedAt: '$updatedAt',
+          username: { $first: '$user.username' },
+          answerCount: { $size: '$answers' },
+        },
+      },
+    ];
+
+    if (answeredFilter === 'false') {
+      aggregateArr.push({
+        $match: {
+          answerCount: 0,
+        },
+      });
+    } else if (answeredFilter) {
+      aggregateArr.push({
+        $match: {
+          answerCount: { $gt: 0 },
+        },
+      });
+    }
+
     const con = await client.connect();
-    let data = con
-      .db('final-project')
-      .collection('questions')
-      .aggregate([
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'userId',
-            foreignField: '_id',
-            as: 'user',
-          },
-        },
-        {
-          $lookup: {
-            from: 'answers',
-            localField: '_id',
-            foreignField: 'questionId',
-            as: 'answers',
-          },
-        },
-        {
-          $project: {
-            _id: '$_id',
-            title: '$title',
-            question: '$question',
-            userId: '$userId',
-            createdAt: '$createdAt',
-            updatedAt: '$updatedAt',
-            username: { $first: '$user.username' },
-            answerCount: { $size: '$answers' },
-          },
-        },
-      ]);
+    let data = con.db('final-project').collection('questions').aggregate(aggregateArr);
 
     if (sortAnswer || sortDate) {
       data = data.sort(sortObj);
     }
 
     data = await data.toArray();
-
-    if (answeredFilter === 'false') {
-      data = data.filter((question) => question.answerCount === 0);
-    } else if (answeredFilter) {
-      data = data.filter((question) => question.answerCount > 0);
-    }
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ error: error.toString() });
@@ -360,10 +367,18 @@ app.get('/questions', async (req, res) => {
 });
 
 // get question with answers
-
-app.get('/questions/:id', async (req, res) => {
+//using different middleware which adds user details if token is present,but allows request even if no token provided
+app.get('/questions/:id', authNoBlock, async (req, res) => {
   try {
     const { id } = req.params;
+    let userId = null;
+    //user can be also non logged in
+    if (req.user) {
+      userId = req.user.userId;
+    }
+
+    console.log(userId);
+
     const filter = { _id: ObjectId(id) };
 
     const con = await client.connect();
@@ -393,6 +408,14 @@ app.get('/questions/:id', async (req, res) => {
           },
         },
         {
+          $lookup: {
+            from: 'usersRatings',
+            localField: '_id',
+            foreignField: 'answerId',
+            as: 'ratings',
+          },
+        },
+        {
           $project: {
             _id: '$_id',
             answer: '$answer',
@@ -401,6 +424,28 @@ app.get('/questions/:id', async (req, res) => {
             createdAt: '$createdAt',
             updatedAt: '$updatedAt',
             username: { $first: '$user.username' },
+            ratings: '$ratings',
+            liked: {
+              $filter: {
+                input: '$ratings',
+                as: 'item',
+                cond: { $eq: ['$$item.userId', ObjectId(userId)] },
+              },
+            },
+          },
+        },
+        //how to avoid this projection twice? no idea.
+        {
+          $project: {
+            _id: '$_id',
+            answer: '$answer',
+            userId: '$userId',
+            rating: '$rating',
+            createdAt: '$createdAt',
+            updatedAt: '$updatedAt',
+            username: '$username',
+            ratings: '$ratings',
+            liked: { $first: '$liked.value' },
           },
         },
       ])
@@ -422,3 +467,82 @@ app.get('/questions/:id', async (req, res) => {
     return res.status(500).send({ error: error.toString() });
   }
 });
+
+// POST LIKE DISLIKE
+app.post('/rate/answers/:id', auth, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    let { rating } = req.body;
+
+    const { id } = req.params;
+    const filter = { answerId: ObjectId(id), userId: ObjectId(userId) };
+
+    if (rating !== -1 && rating !== 1) {
+      return res.status(400).send('Bad input');
+    }
+
+    const con = await client.connect();
+    const existingAnswer = await con
+      .db('final-project')
+      .collection('answers')
+      .findOne({ _id: ObjectId(id) });
+
+    if (!existingAnswer) {
+      return res.status(404).send({ error: 'Answer with given ID does not exist.' });
+    }
+    const userRating = await con.db('final-project').collection('usersRatings').findOne(filter);
+
+    let ratingCount = rating;
+    if (!userRating) {
+      await con
+        .db('final-project')
+        .collection('usersRatings')
+        .insertOne({
+          answerId: ObjectId(id),
+          userId: ObjectId(userId),
+          value: rating,
+        });
+    } else {
+      if (userRating.value === rating) {
+        ratingCount = ratingCount * -1;
+        await con.db('final-project').collection('usersRatings').deleteOne(filter);
+      } else {
+        ratingCount = ratingCount * 2;
+        await con
+          .db('final-project')
+          .collection('usersRatings')
+          .updateOne(filter, {
+            $set: {
+              answerId: userRating.answerId,
+              userId: userRating.userId,
+              value: rating,
+            },
+          });
+      }
+    }
+
+    const updateAnswerObj = {
+      answer: existingAnswer.answer,
+      userId: ObjectId(existingAnswer.userId),
+      questionId: ObjectId(existingAnswer.questionId),
+      rating: existingAnswer.rating + ratingCount,
+      createdAt: existingAnswer.createdAt,
+      updatedAt: existingAnswer.updatedAt,
+    };
+
+    await con
+      .db('final-project')
+      .collection('answers')
+      .updateOne(
+        { _id: ObjectId(id) },
+        {
+          $set: updateAnswerObj,
+        },
+      );
+
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).send({ error });
+  }
+});
+
