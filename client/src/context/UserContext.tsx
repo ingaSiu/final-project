@@ -2,6 +2,7 @@ import { PropsWithChildren, createContext } from 'react';
 
 import { LOGIN_PATH } from '../routes/consts';
 import { SESSION_KEY } from '../settings';
+import jwt from 'jwt-decode';
 import { useLocalStorage } from '../hooks/localStorage';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,11 +11,15 @@ const UserContext = createContext<{
   setUser: any;
   isLoggedIn: boolean;
   handleLogOut: () => void;
+  getDecodedUser: () => object | null;
 }>({
   user: null,
   setUser: () => {},
   isLoggedIn: false,
   handleLogOut: () => {},
+  getDecodedUser: () => {
+    return null;
+  },
 });
 
 const UserProvider = ({ children }: PropsWithChildren) => {
@@ -27,6 +32,23 @@ const UserProvider = ({ children }: PropsWithChildren) => {
     navigate(LOGIN_PATH);
   };
 
-  return <UserContext.Provider value={{ user, isLoggedIn, setUser, handleLogOut }}>{children}</UserContext.Provider>;
+  const getDecodedUser = () => {
+    try {
+      if (!user) {
+        return null;
+      }
+      const jwtDecoded = jwt(user);
+      console.log(jwtDecoded);
+      return jwtDecoded;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  return (
+    <UserContext.Provider value={{ user, isLoggedIn, setUser, handleLogOut, getDecodedUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 export { UserContext, UserProvider };
