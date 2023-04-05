@@ -19,7 +19,7 @@ export const getQuestions = ({ queryKey }: QueryKeyObj): Promise<Question[]> => 
   const sortDate = queryKey[1];
   const sortAnswer = queryKey[2];
   const answeredFilter = queryKey[3];
-  console.log(`fetching started ${sortDate}`);
+
   return httpClient
     .get(`${BASE_URL}questions`, {
       params: {
@@ -29,7 +29,6 @@ export const getQuestions = ({ queryKey }: QueryKeyObj): Promise<Question[]> => 
       },
     })
     .then((response) => {
-      console.log(`fetching finished ${sortDate}`);
       return response.data;
     })
     .catch((error) => {
@@ -44,7 +43,7 @@ export const getQuestions = ({ queryKey }: QueryKeyObj): Promise<Question[]> => 
 
 export const getQuestionWithAnswers = ({ queryKey }: QueryKeyObj): Promise<QuestionWithAnswers> => {
   const id = queryKey[1];
-  console.log(`question id in api ${id}`);
+
   return httpClient
     .get(`${BASE_URL}questions/${id}`)
     .then((response) => {
@@ -99,7 +98,7 @@ export const editQuestion = ({ id, title, question }: EditedQuestion) => {
 };
 
 export const deleteQuestion = (id: number) => {
-  return httpClient.delete(`${BASE_URL}question/${id}`).then((response) => {
+  return httpClient.delete(`${BASE_URL}question/${id}`).then(() => {
     return console.log('Question was succesfully deleted');
   });
 };

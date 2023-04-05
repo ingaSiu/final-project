@@ -1,1 +1,1 @@
-export const requiredField: string = 'Required';
+export const requiredField = 'Required';

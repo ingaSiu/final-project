@@ -38,6 +38,7 @@ const UserProvider = ({ children }: PropsWithChildren) => {
         return null;
       }
       const jwtDecoded = jwt(user);
+      console.log('user info is:');
       console.log(jwtDecoded);
       return jwtDecoded;
     } catch (error) {

@@ -2,7 +2,6 @@ import { deleteQuestion, editQuestion, getQuestionWithAnswers, getQuestions, pos
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { GetProps } from '../api/questions';
-import { SESSION_KEY } from '../settings';
 import { queryClient } from '../main';
 
 export const QUESTIONS_KEY = 'QUESTIONS';

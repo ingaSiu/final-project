@@ -1,11 +1,10 @@
 import * as Yup from 'yup';
 
 import { Form, Formik } from 'formik';
-import { HOME_PATH, LOGIN_PATH } from '../../routes/consts';
 
 import Button from '../../components/Button/Button';
 import FormikInput from '../../components/Formik/FormikInput';
-import { MainGreen } from '../../const/styles';
+import { LOGIN_PATH } from '../../routes/consts';
 import { User } from '../../types/user';
 import { requiredField } from '../../const/validation';
 import styled from 'styled-components';
@@ -82,7 +81,6 @@ const RegisterForm = () => {
 export default RegisterForm;
 
 const StyledFormContainer = styled.div`
-  /* max-height: 500px; */
   overflow-y: auto;
 `;
 

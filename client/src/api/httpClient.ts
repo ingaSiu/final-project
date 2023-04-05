@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const httpClient = () => {
   // Create instance
-  let instance = axios.create();
+  const instance = axios.create();
 
   // Set the AUTH token for any request
 

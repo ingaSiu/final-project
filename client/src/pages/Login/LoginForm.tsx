@@ -5,7 +5,6 @@ import { Form, Formik } from 'formik';
 import Button from '../../components/Button/Button';
 import FormikInput from '../../components/Formik/FormikInput';
 import { HOME_PATH } from '../../routes/consts';
-import { MainGreen } from '../../const/styles';
 import { User } from '../../types/user';
 import { UserContext } from '../../context/UserContext';
 import { requiredField } from '../../const/validation';
@@ -29,13 +28,12 @@ const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
-  //TODO navigate to home if user is logged in
 
   const handleSubmit = (values: User) => {
     login(values)
       .then((response) => {
         setUser(response);
-        console.log(`login submit handled succecfully ${response}`);
+
         navigate(HOME_PATH);
         toast.success('Successfully logged in!');
       })
