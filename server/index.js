@@ -65,7 +65,7 @@ app.post('/register', async (req, res) => {
       return res.status(409).send('User Already Exist. Please Login');
     }
 
-    encryptedPassword = await bcrypt.hash(password, 10);
+    const encryptedPassword = await bcrypt.hash(password, 10);
 
     const insertResponse = await con.db('final-project').collection('users').insertOne({
       username: username,
@@ -156,7 +156,6 @@ app.put('/question/:id', auth, async (req, res) => {
 
     const con = await client.connect();
     const existingQuestion = await con.db('final-project').collection('questions').findOne(filter);
-    console.log(existingQuestion);
     if (!existingQuestion) {
       return res.status(404).send({ error: 'Question with given ID does not exist.' });
     }
@@ -179,6 +178,7 @@ app.put('/question/:id', auth, async (req, res) => {
 // DELETE question
 
 app.delete('/question/:id', auth, async (req, res) => {
+  console.log('delete on question triggered');
   try {
     const { id } = req.params;
     const { userId } = req.user;
@@ -187,6 +187,10 @@ app.delete('/question/:id', auth, async (req, res) => {
     const data = await con.db('final-project').collection('questions').deleteOne(filter);
 
     if (data.deletedCount && data.deletedCount > 0) {
+      await con
+        .db('final-project')
+        .collection('answers')
+        .deleteMany({ questionId: ObjectId(id) });
       return res.status(204).send();
     }
     if (data.deletedCount === 0) {
@@ -204,7 +208,6 @@ app.post('/question/:id/answers', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.user;
-    const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
     const con = await client.connect();
 
     const { answer } = req.body;
@@ -212,7 +215,10 @@ app.post('/question/:id/answers', auth, async (req, res) => {
     if (!answer) {
       return res.status(400).send({ error: 'Bad data.' });
     }
-    const existingQuestion = await con.db('final-project').collection('questions').findOne(filter);
+    const existingQuestion = await con
+      .db('final-project')
+      .collection('questions')
+      .findOne({ _id: ObjectId(id) });
 
     if (!existingQuestion) {
       return res.status(404).send({ error: 'Question with given ID does not exist.' });
@@ -251,7 +257,6 @@ app.put('/answer/:id', auth, async (req, res) => {
 
     const con = await client.connect();
     const existingAnswer = await con.db('final-project').collection('answers').findOne(filter);
-    console.log(existingAnswer);
     if (!existingAnswer) {
       return res.status(404).send({ error: 'Answer with given ID does not exist.' });
     }
@@ -295,16 +300,16 @@ app.delete('/answer/:id', auth, async (req, res) => {
 });
 
 // get questions
-//TODO filtering BEFORE sorting
+
 app.get('/questions', async (req, res) => {
   try {
     const { sortDate, sortAnswer, answeredFilter } = req.query;
     let sortObj = {};
+    if (sortAnswer) {
+      sortObj = { ...sortObj, ...{ answersCount: sortAnswer === 'dsc' ? -1 : 1 } };
+    }
     if (sortDate) {
       sortObj = { ...sortObj, ...{ createdAt: sortDate === 'dsc' ? -1 : 1 } };
-    }
-    if (sortAnswer) {
-      sortObj = { ...sortObj, ...{ answerCount: sortAnswer === 'dsc' ? -1 : 1 } };
     }
 
     let aggregateArr = [
@@ -333,7 +338,7 @@ app.get('/questions', async (req, res) => {
           createdAt: '$createdAt',
           updatedAt: '$updatedAt',
           username: { $first: '$user.username' },
-          answerCount: { $size: '$answers' },
+          answersCount: { $size: '$answers' },
         },
       },
     ];
@@ -341,23 +346,26 @@ app.get('/questions', async (req, res) => {
     if (answeredFilter === 'false') {
       aggregateArr.push({
         $match: {
-          answerCount: 0,
+          answersCount: 0,
         },
       });
     } else if (answeredFilter) {
       aggregateArr.push({
         $match: {
-          answerCount: { $gt: 0 },
+          answersCount: { $gt: 0 },
         },
       });
     }
 
+    if (sortAnswer || sortDate) {
+      aggregateArr.push({
+        $sort: sortObj,
+      });
+      console.log(sortObj);
+    }
+
     const con = await client.connect();
     let data = con.db('final-project').collection('questions').aggregate(aggregateArr);
-
-    if (sortAnswer || sortDate) {
-      data = data.sort(sortObj);
-    }
 
     data = await data.toArray();
     return res.send(data);
@@ -376,8 +384,6 @@ app.get('/questions/:id', authNoBlock, async (req, res) => {
     if (req.user) {
       userId = req.user.userId;
     }
-
-    console.log(userId);
 
     const filter = { _id: ObjectId(id) };
 
@@ -434,7 +440,7 @@ app.get('/questions/:id', authNoBlock, async (req, res) => {
             },
           },
         },
-        //how to avoid this projection twice? no idea.
+
         {
           $project: {
             _id: '$_id',
