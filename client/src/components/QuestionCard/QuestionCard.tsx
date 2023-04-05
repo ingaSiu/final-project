@@ -19,7 +19,7 @@ const QuestionCard = ({ title, username, createdAt, answerCount, questionId }: Q
       </CountWrapper>
 
       <TitleWrapper>
-        <Title to={generatePath(QUESTION_PAGE_PATH, { id: questionId ? questionId : null })}>{title}</Title>
+        <Title to={generatePath(QUESTION_PAGE_PATH, { questionId: questionId ? questionId : null })}>{title}</Title>
       </TitleWrapper>
 
       <UserWrapper>
@@ -33,7 +33,7 @@ const QuestionCard = ({ title, username, createdAt, answerCount, questionId }: Q
 export default QuestionCard;
 
 const CardWrapper = styled.div`
-  padding: 5px;
+  padding: 4px;
   border: 1px solid black;
   width: 100%;
   border-radius: 4px;
@@ -42,22 +42,24 @@ const CardWrapper = styled.div`
 const Title = styled(Link)`
   font-size: 20px;
   text-transform: uppercase;
+  text-decoration: none;
+  color: black;
 `;
 const TitleWrapper = styled.div`
-  padding: 5px;
+  padding: 4px;
 `;
 
 const UserWrapper = styled.div`
-  padding: 5px;
-
+  padding: 4px;
+  text-align: right;
   span {
     padding-left: 4px;
   }
 `;
 
 const CountWrapper = styled.div`
-  padding: 5px;
+  padding: 4px;
 `;
 const Count = styled.div`
-  padding: 5px;
+  padding: 4px;
 `;
