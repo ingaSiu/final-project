@@ -1,53 +1,77 @@
 import * as Yup from 'yup';
 
 import { Form, Formik } from 'formik';
-import { NewQuestion, Question } from '../../types/question';
+import { generatePath, useNavigate } from 'react-router-dom';
+import { useEditQuestion, usePostQuestion } from '../../hooks/question';
 
 import Button from '../../components/Button/Button';
 import FormikInput from '../../components/Formik/FormikInput';
 import FormikTextArea from '../../components/Formik/FormikTextarea';
-import { MainGreen } from '../../const/styles';
+import { NewQuestion } from '../../types/question';
+import { QUESTION_PAGE_PATH } from '../../routes/consts';
 import { requiredField } from '../../const/validation';
 import styled from 'styled-components';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import { usePostQuestion } from '../../hooks/question';
 
-const initialValues: Question = {
+const initialValues: QuestionFormProps = {
   title: '',
   question: '',
 };
 
-type FormikFormProps = {
-  resetForm: () => void;
-};
 const validationSchema: Yup.ObjectSchema<NewQuestion> = Yup.object().shape({
   title: Yup.string().required(requiredField),
   question: Yup.string().required(requiredField),
 });
 
-const AddQuestionForm = () => {
+type QuestionFormProps = {
+  title?: string;
+  question?: string;
+  id?: string;
+};
+
+const AddQuestionForm = ({ title, question, id }: QuestionFormProps) => {
   const { mutateAsync: createPost } = usePostQuestion();
   const navigate = useNavigate();
+  const { mutateAsync: EditQuestion } = useEditQuestion();
 
-  // after submitting navigate to the written question page
-
-  const handleSubmit = (values: Question, { resetForm }: FormikFormProps) => {
-    createPost(values)
-      .then((response) => {
-        console.log(response);
-        toast.success('Question created successfully');
-        //TODO change with variable
-        navigate('/question/' + response.insertedId);
-      })
-      .catch((error) => {
-        if (error.response.status === 401) {
-          toast.error('Session ended');
-        }
-        console.error('Failed to create question');
-        toast.error('Failed to create question');
-      });
+  const handleSubmit = (values: QuestionFormProps) => {
+    if (id) {
+      EditQuestion({ ...values, id: id })
+        .then((response) => {
+          console.log(response);
+          toast.success('Question edited successfully');
+        })
+        .catch((error) => {
+          if (error.response.status === 401) {
+            toast.error('Session ended');
+          }
+          console.error('Failed to edit question');
+          toast.error('Failed to edit question');
+        });
+    } else {
+      createPost(values)
+        .then((response) => {
+          console.log(response);
+          toast.success('Question created successfully');
+          const path = generatePath(QUESTION_PAGE_PATH, {
+            questionId: response.insertedId ? response.insertedId : null,
+          });
+          navigate(path);
+        })
+        .catch((error) => {
+          if (error.response.status === 401) {
+            toast.error('Session ended');
+          }
+          console.error('Failed to create question');
+          toast.error('Failed to create question');
+        });
+    }
   };
+
+  if (title || question) {
+    initialValues.title = title ? title : '';
+    initialValues.question = question ? question : '';
+  }
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
@@ -72,8 +96,8 @@ const AddQuestionForm = () => {
 export default AddQuestionForm;
 
 const StyledFormContainer = styled.div`
-  max-height: 500px;
-  width: 600px;
+  max-height: 900px;
+  width: 100%;
   overflow-y: auto;
   border-radius: 4px;
   display: flex;
