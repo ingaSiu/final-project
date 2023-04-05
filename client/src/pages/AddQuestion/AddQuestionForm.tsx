@@ -13,11 +13,6 @@ import { requiredField } from '../../const/validation';
 import styled from 'styled-components';
 import { toast } from 'react-hot-toast';
 
-const initialValues: QuestionFormProps = {
-  title: '',
-  question: '',
-};
-
 const validationSchema: Yup.ObjectSchema<NewQuestion> = Yup.object().shape({
   title: Yup.string().required(requiredField),
   question: Yup.string().required(requiredField),
@@ -30,6 +25,10 @@ type QuestionFormProps = {
 };
 
 const AddQuestionForm = ({ title, question, id }: QuestionFormProps) => {
+  const initialValues: QuestionFormProps = {
+    title: '',
+    question: '',
+  };
   const { mutateAsync: createPost } = usePostQuestion();
   const navigate = useNavigate();
   const { mutateAsync: EditQuestion } = useEditQuestion();
@@ -67,11 +66,18 @@ const AddQuestionForm = ({ title, question, id }: QuestionFormProps) => {
         });
     }
   };
+  console.log(`props ${title} ${question} ${id}`);
+
+  console.log('initial values before check');
+  console.log(initialValues);
 
   if (title || question) {
     initialValues.title = title ? title : '';
     initialValues.question = question ? question : '';
   }
+
+  console.log('initial values after check');
+  console.log(initialValues);
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>

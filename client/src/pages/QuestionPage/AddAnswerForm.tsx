@@ -15,10 +15,6 @@ import { useEditAnswer } from '../../hooks/answer';
 import { useNavigate } from 'react-router-dom';
 import { usePostAnswer } from '../../hooks/answer';
 
-const initialValues: Answer = {
-  answer: '',
-};
-
 type FormikFormProps = {
   resetForm: () => void;
 };
@@ -33,6 +29,9 @@ type AnswerForm = {
 };
 
 const AddAnswerForm = ({ questionId, answer, answerId }: AnswerForm) => {
+  const initialValues: Answer = {
+    answer: '',
+  };
   const { mutateAsync: createAnswer } = usePostAnswer();
   const { mutateAsync: editAnswer } = useEditAnswer();
 
