@@ -1,8 +1,22 @@
+import { useContext, useEffect } from 'react';
+
 import AddQuestionForm from './AddQuestionForm';
+import { LOGIN_PATH } from '../../routes/consts';
+import { UserContext } from '../../context/UserContext';
 import cat_question from '../../assets/cat_question.jpg';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const AddQuestion = () => {
+  const { isLoggedIn } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate(LOGIN_PATH);
+    }
+  }, [isLoggedIn]);
+
   return (
     <Container>
       <Wrapper>
@@ -21,7 +35,9 @@ export default AddQuestion;
 
 const Wrapper = styled.div`
   display: flex;
-  /* flex-wrap: wrap; */
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Title = styled.p`
@@ -30,11 +46,11 @@ const Title = styled.p`
 
 const Container = styled.div`
   display: flex;
-  justify-content: center;
+ 
   margin-top: 50px;
   width: 100vw
   height: 90vh;
-  align-items: center;
+ 
 `;
 
 const Details = styled.div`
