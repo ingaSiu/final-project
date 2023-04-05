@@ -1,17 +1,13 @@
 import { QUESTIONS_KEY, QUESTION_KEY } from './question';
-import { deleteAnswer, editAnswer, postAnswer } from '../api/answers';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { deleteAnswer, editAnswer, postAnswer, rateAnswer } from '../api/answers';
 
-import { SESSION_KEY } from '../settings';
 import { queryClient } from '../main';
-
-const ANSWERS = 'ANSWERS';
+import { useMutation } from '@tanstack/react-query';
 
 export const usePostAnswer = () => {
   return useMutation({
     mutationFn: postAnswer,
     onSuccess: () => {
-      //TODO invalidate single question query with answers QUESTION
       queryClient.invalidateQueries({ queryKey: [QUESTIONS_KEY] });
       queryClient.invalidateQueries({ queryKey: [QUESTION_KEY] });
       console.log('Answer created succesfully');
@@ -26,7 +22,6 @@ export const useEditAnswer = () => {
   return useMutation({
     mutationFn: editAnswer,
     onSuccess: () => {
-      //TODO invalidate single question query with answers QUESTION
       queryClient.invalidateQueries({ queryKey: [QUESTIONS_KEY] });
       queryClient.invalidateQueries({ queryKey: [QUESTION_KEY] });
       console.log('Answer edited succesfully');
@@ -38,17 +33,29 @@ export const useEditAnswer = () => {
 };
 
 export const useDeleteAnswer = () => {
-  //TODO invalidate single question query with answers QUESTION
   return useMutation({
     mutationFn: deleteAnswer,
     onSuccess: () => {
-      //TODO invalidate single question query with answers QUESTION
       queryClient.invalidateQueries({ queryKey: [QUESTIONS_KEY] });
       queryClient.invalidateQueries({ queryKey: [QUESTION_KEY] });
       console.log('Answer deleted succesfully');
     },
     onError: () => {
       console.log('Error then deleted answer');
+    },
+  });
+};
+
+export const useRateAnswer = () => {
+  return useMutation({
+    mutationFn: rateAnswer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUESTIONS_KEY] });
+      queryClient.invalidateQueries({ queryKey: [QUESTION_KEY] });
+      console.log('Answer rated succesfully');
+    },
+    onError: () => {
+      console.log('Error when rating answer');
     },
   });
 };
