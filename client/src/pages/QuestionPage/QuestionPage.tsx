@@ -174,10 +174,13 @@ const QuestionTitle = styled.p`
   padding: 16px;
 `;
 
-const TextField = styled.p`
+const TextField = styled.div`
   font-size: 24px;
   padding: 8px;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  max-width: 550px;
 `;
 const UserInfo = styled.div`
   display: flex;
