@@ -28,6 +28,12 @@ const Home = () => {
     setAnsweredFilter(filterVal);
   };
 
+  const handleClearSorting = () => {
+    setSortDate('');
+    setSortAnswer('');
+    setAnsweredFilter('');
+  };
+
   return (
     <Container>
       <QuestionBoard title="Questions" />
@@ -35,6 +41,7 @@ const Home = () => {
         <Button title="Sort by question date" onClick={handleSortDate} />
         <Button title="Sort by answers count" onClick={handleSortAnswer} />
         <Button title="Filter by answers count" onClick={handleAnsweredFilter} />
+        <Button title="Clear sorting and filter" onClick={handleClearSorting} />
       </SortWrapper>
 
       <CardWrapper>
