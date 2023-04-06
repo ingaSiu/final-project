@@ -31,7 +31,7 @@ const RegisterForm = () => {
   const navigate = useNavigate();
 
   const handleSubmit = (values: User) => {
-    toast('Registration successfull!');
+    
 
     createUser(values)
       .then(() => {
