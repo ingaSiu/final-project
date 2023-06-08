@@ -46,11 +46,10 @@ const Title = styled.p`
 
 const Container = styled.div`
   display: flex;
- 
+
   margin-top: 50px;
-  width: 100vw
+  width: 100vw;
   height: 90vh;
- 
 `;
 
 const Details = styled.div`
