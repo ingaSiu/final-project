@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 type NavbarProps = {
-  username: string;
+  username: string | undefined;
 };
 
 const NavBar = ({ username }: NavbarProps) => {
