@@ -139,7 +139,7 @@ const QuestionPage = () => {
       )}
 
       <InfoText>Know how to solve this problem? </InfoText>
-      <AddAnswerForm questionId={questionId} />
+      <AddAnswerForm questionId={questionId ? questionId : ''} />
     </Container>
   );
 };
