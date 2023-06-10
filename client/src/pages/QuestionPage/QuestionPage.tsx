@@ -113,7 +113,7 @@ const QuestionPage = () => {
 
                 <TextField>{item.answer}</TextField>
               </AnswerContainer>
-              {editedAnswers.find((editedAnswer) => editedAnswer === item._id) && (
+              {editedAnswers.find((editedAnswer) => editedAnswer === item._id) && questionData._id && (
                 <AddAnswerForm answer={item.answer} answerId={item._id} questionId={questionData._id} />
               )}
 
