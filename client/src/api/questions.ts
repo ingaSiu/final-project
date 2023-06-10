@@ -97,7 +97,7 @@ export const editQuestion = ({ id, title, question }: EditedQuestion) => {
     });
 };
 
-export const deleteQuestion = (id: number) => {
+export const deleteQuestion = (id: string) => {
   return httpClient.delete(`${BASE_URL}question/${id}`).then(() => {
     return console.log('Question was succesfully deleted');
   });
