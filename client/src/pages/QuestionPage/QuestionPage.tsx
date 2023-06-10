@@ -31,7 +31,7 @@ const QuestionPage = () => {
   const user = getDecodedUser();
   const userId = user ? user.userId : null;
 
-  const handleDeleteAnswer = (id) => {
+  const handleDeleteAnswer = (id: string) => {
     if (window.confirm('Are you sure you want to delete this Answer?')) {
       deleteAnswer(id)
         .then(() => {
@@ -41,7 +41,7 @@ const QuestionPage = () => {
     }
   };
 
-  const handleDeleteQuestion = (id) => {
+  const handleDeleteQuestion = (id: string) => {
     if (window.confirm('Are you sure you want to delete this Post?')) {
       deleteQuestion(id)
         .then(() => {
@@ -52,7 +52,7 @@ const QuestionPage = () => {
     }
   };
 
-  const handleEditAnswer = (id) => {
+  const handleEditAnswer = (id: string) => {
     const answerIsEdited = editedAnswers.find((answerId) => answerId === id);
     const newEditedArr = answerIsEdited ? editedAnswers.filter((answerId) => answerId !== id) : [...editedAnswers, id];
     setEditedAnswers(newEditedArr);
