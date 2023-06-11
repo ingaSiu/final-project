@@ -35,7 +35,12 @@ const AddQuestionForm = ({ title, question, id }: QuestionFormProps) => {
 
   const handleSubmit = (values: QuestionFormProps) => {
     if (id) {
-      EditQuestion({ ...values, id: id })
+      const editQuestionObj = {
+        id: id,
+        title: values.title ? values.title : '',
+        question: values.question ? values.question : '',
+      };
+      EditQuestion(editQuestionObj)
         .then((response) => {
           console.log(response);
           toast.success('Question edited successfully');
@@ -48,7 +53,11 @@ const AddQuestionForm = ({ title, question, id }: QuestionFormProps) => {
           toast.error('Failed to edit question');
         });
     } else {
-      createPost(values)
+      const createQuestionObj = {
+        title: values.title ? values.title : '',
+        question: values.question ? values.question : '',
+      };
+      createPost(createQuestionObj)
         .then((response) => {
           console.log(response);
           toast.success('Question created successfully');
