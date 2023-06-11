@@ -1,7 +1,7 @@
 import { Answer } from './answer';
 
 export type Question = {
-  _id?: string;
+  _id: string;
   title: string;
   question: string;
   userId?: string;
@@ -11,7 +11,17 @@ export type Question = {
   answersCount?: number;
 };
 
-export type QuestionWithAnswers = Question & Answer[];
+export type QuestionWithAnswers = {
+  _id: string;
+  title: string;
+  question: string;
+  userId?: string;
+  answers: Answer[];
+  createdAt?: number | string;
+  updatedAt?: null | number;
+  username?: string;
+  answersCount?: number;
+};
 
 export type NewQuestion = {
   title: string;
