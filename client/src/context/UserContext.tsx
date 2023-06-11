@@ -11,17 +11,24 @@ const UserContext = createContext<{
   setUser: any;
   isLoggedIn: boolean;
   handleLogOut: () => void;
-  getDecodedUser: () => object | null;
+  getDecodedUser: () => DecodedUser | null;
 }>({
   user: null,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   setUser: () => {},
   isLoggedIn: false,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleLogOut: () => {},
   getDecodedUser: () => {
     return null;
   },
 });
 
+export type DecodedUser = {
+  userId: string;
+  username: string;
+  // Add other properties if applicable
+};
 const UserProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useLocalStorage(SESSION_KEY, null);
   const navigate = useNavigate();
@@ -32,12 +39,12 @@ const UserProvider = ({ children }: PropsWithChildren) => {
     navigate(LOGIN_PATH);
   };
 
-  const getDecodedUser = () => {
+  const getDecodedUser = (): DecodedUser | null => {
     try {
       if (!user) {
         return null;
       }
-      const jwtDecoded = jwt(user);
+      const jwtDecoded = jwt(user) as DecodedUser;
       console.log('user info is:');
       console.log(jwtDecoded);
       return jwtDecoded;

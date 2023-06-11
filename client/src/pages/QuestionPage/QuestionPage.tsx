@@ -21,7 +21,7 @@ const QuestionPage = () => {
   const { data: questionData } = useQuestion(questionId ? questionId : '');
   console.log(questionData);
   const [editQuestion, setEditQuestion] = useState(false);
-  const [editedAnswers, setEditedAnswers] = useState([]);
+  const [editedAnswers, setEditedAnswers] = useState<string[]>([]);
 
   const navigate = useNavigate();
   const { mutateAsync: deleteAnswer } = useDeleteAnswer();
@@ -31,7 +31,7 @@ const QuestionPage = () => {
   const user = getDecodedUser();
   const userId = user ? user.userId : null;
 
-  const handleDeleteAnswer = (id) => {
+  const handleDeleteAnswer = (id: string) => {
     if (window.confirm('Are you sure you want to delete this Answer?')) {
       deleteAnswer(id)
         .then(() => {
@@ -41,7 +41,7 @@ const QuestionPage = () => {
     }
   };
 
-  const handleDeleteQuestion = (id) => {
+  const handleDeleteQuestion = (id: string) => {
     if (window.confirm('Are you sure you want to delete this Post?')) {
       deleteQuestion(id)
         .then(() => {
@@ -52,7 +52,7 @@ const QuestionPage = () => {
     }
   };
 
-  const handleEditAnswer = (id) => {
+  const handleEditAnswer = (id: string) => {
     const answerIsEdited = editedAnswers.find((answerId) => answerId === id);
     const newEditedArr = answerIsEdited ? editedAnswers.filter((answerId) => answerId !== id) : [...editedAnswers, id];
     setEditedAnswers(newEditedArr);
@@ -98,34 +98,38 @@ const QuestionPage = () => {
               <AnswerContainer>
                 <IconsWrapper>
                   {item.liked === 1 ? (
-                    <BsArrowUpCircleFill onClick={() => rateAnswer({ answerId: item._id, rating: 1 })} />
+                    <BsArrowUpCircleFill
+                      onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: 1 })}
+                    />
                   ) : (
-                    <BsArrowUpCircle onClick={() => rateAnswer({ answerId: item._id, rating: 1 })} />
+                    <BsArrowUpCircle onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: 1 })} />
                   )}
 
                   <RatingCount>{item.rating}</RatingCount>
                   {item.liked === -1 ? (
-                    <BsArrowDownCircleFill onClick={() => rateAnswer({ answerId: item._id, rating: -1 })} />
+                    <BsArrowDownCircleFill
+                      onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: -1 })}
+                    />
                   ) : (
-                    <BsArrowDownCircle onClick={() => rateAnswer({ answerId: item._id, rating: -1 })} />
+                    <BsArrowDownCircle onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: -1 })} />
                   )}
                 </IconsWrapper>
 
                 <TextField>{item.answer}</TextField>
               </AnswerContainer>
-              {editedAnswers.find((editedAnswer) => editedAnswer === item._id) && (
+              {editedAnswers.find((editedAnswer) => editedAnswer === item._id) && questionData._id && (
                 <AddAnswerForm answer={item.answer} answerId={item._id} questionId={questionData._id} />
               )}
 
               <UserInfo>
                 {userId === item.userId && (
                   <BtnContainer>
-                    <StyledBtn onClick={() => handleEditAnswer(item._id)}>
+                    <StyledBtn onClick={() => handleEditAnswer(item._id ? item._id : '')}>
                       {editedAnswers.find((editedAnswer) => editedAnswer === item._id)
                         ? 'Cancel editing'
                         : 'Edit answer'}
                     </StyledBtn>
-                    <StyledBtn onClick={() => handleDeleteAnswer(item._id)}>Delete answer</StyledBtn>
+                    <StyledBtn onClick={() => handleDeleteAnswer(item._id ? item._id : '')}>Delete answer</StyledBtn>
                   </BtnContainer>
                 )}
 
@@ -139,7 +143,7 @@ const QuestionPage = () => {
       )}
 
       <InfoText>Know how to solve this problem? </InfoText>
-      <AddAnswerForm questionId={questionId} />
+      <AddAnswerForm questionId={questionId ? questionId : ''} />
     </Container>
   );
 };

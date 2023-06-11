@@ -40,7 +40,7 @@ export const editAnswer = ({ id, answer }: EditedAnswer) => {
     });
 };
 
-export const deleteAnswer = (id: number) => {
+export const deleteAnswer = (id: string) => {
   return httpClient.delete(`${BASE_URL}answer/${id}`).then((response) => {
     return console.log('Question was succesfully deleted', response);
   });
