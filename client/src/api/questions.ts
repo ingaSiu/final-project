@@ -59,7 +59,12 @@ export const getQuestionWithAnswers = ({ queryKey }: QueryKeyObj): Promise<Quest
     });
 };
 
-export const postQuestion = ({ title, question }: Question) => {
+type CreateQuestionProps = {
+  title: string;
+  question: string;
+};
+
+export const postQuestion = ({ title, question }: CreateQuestionProps) => {
   return httpClient
     .post(`${BASE_URL}question`, { title, question })
     .then((response) => {
@@ -77,8 +82,8 @@ export const postQuestion = ({ title, question }: Question) => {
 
 type EditedQuestion = {
   id: string;
-  title: Question;
-  question: Question;
+  title: string;
+  question: string;
 };
 
 export const editQuestion = ({ id, title, question }: EditedQuestion) => {
