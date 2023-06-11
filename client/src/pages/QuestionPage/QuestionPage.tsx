@@ -21,7 +21,7 @@ const QuestionPage = () => {
   const { data: questionData } = useQuestion(questionId ? questionId : '');
   console.log(questionData);
   const [editQuestion, setEditQuestion] = useState(false);
-  const [editedAnswers, setEditedAnswers] = useState([]);
+  const [editedAnswers, setEditedAnswers] = useState<string[]>([]);
 
   const navigate = useNavigate();
   const { mutateAsync: deleteAnswer } = useDeleteAnswer();
@@ -98,16 +98,20 @@ const QuestionPage = () => {
               <AnswerContainer>
                 <IconsWrapper>
                   {item.liked === 1 ? (
-                    <BsArrowUpCircleFill onClick={() => rateAnswer({ answerId: item._id, rating: 1 })} />
+                    <BsArrowUpCircleFill
+                      onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: 1 })}
+                    />
                   ) : (
-                    <BsArrowUpCircle onClick={() => rateAnswer({ answerId: item._id, rating: 1 })} />
+                    <BsArrowUpCircle onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: 1 })} />
                   )}
 
                   <RatingCount>{item.rating}</RatingCount>
                   {item.liked === -1 ? (
-                    <BsArrowDownCircleFill onClick={() => rateAnswer({ answerId: item._id, rating: -1 })} />
+                    <BsArrowDownCircleFill
+                      onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: -1 })}
+                    />
                   ) : (
-                    <BsArrowDownCircle onClick={() => rateAnswer({ answerId: item._id, rating: -1 })} />
+                    <BsArrowDownCircle onClick={() => rateAnswer({ answerId: item._id ? item._id : '', rating: -1 })} />
                   )}
                 </IconsWrapper>
 
@@ -120,12 +124,12 @@ const QuestionPage = () => {
               <UserInfo>
                 {userId === item.userId && (
                   <BtnContainer>
-                    <StyledBtn onClick={() => handleEditAnswer(item._id)}>
+                    <StyledBtn onClick={() => handleEditAnswer(item._id ? item._id : '')}>
                       {editedAnswers.find((editedAnswer) => editedAnswer === item._id)
                         ? 'Cancel editing'
                         : 'Edit answer'}
                     </StyledBtn>
-                    <StyledBtn onClick={() => handleDeleteAnswer(item._id)}>Delete answer</StyledBtn>
+                    <StyledBtn onClick={() => handleDeleteAnswer(item._id ? item._id : '')}>Delete answer</StyledBtn>
                   </BtnContainer>
                 )}
 
