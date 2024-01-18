@@ -2,7 +2,7 @@
 - A full-stack website to share posts online.
 
 ## Demo
-:eyes: [Demo](https://cat-overflow.ingasiu.online/)
+:eyes: [Demo](https://cat-overflow.ingasiu.lt/)
 
 ## Functionality
 - Register and log in 
