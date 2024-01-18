@@ -29,17 +29,15 @@ const LoginForm = () => {
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (values: User) => {
-    login(values)
-      .then((response) => {
-        setUser(response);
-
-        navigate(HOME_PATH);
-        toast.success('Successfully logged in!');
-      })
-      .catch(() => {
-        toast.error('Failed to login:');
-      });
+  const handleSubmit = async (values: User) => {
+    try {
+      const response = await login(values);
+      setUser(response);
+      navigate(HOME_PATH);
+      toast.success('Successfully logged in!');
+    } catch {
+      toast.error('Failed to login:');
+    }
   };
 
   return (
