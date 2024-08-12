@@ -23,13 +23,7 @@ const NavBar = ({ username }: NavbarProps) => {
         </IconContainer>
       </ItemsContainer>
 
-      {!isLoggedIn && (
-        <ItemsContainer>
-          <Button title="Login" onClick={() => navigate(LOGIN_PATH)} />
-          <Button title="Sign up" onClick={() => navigate(REGISTER_PATH)} />
-        </ItemsContainer>
-      )}
-      {isLoggedIn && (
+      {isLoggedIn ? (
         <>
           <ItemsContainerUser>
             <Greeting>Hello, {username}</Greeting>
@@ -37,6 +31,11 @@ const NavBar = ({ username }: NavbarProps) => {
             <Button title="Log out" onClick={handleLogOut} />
           </ItemsContainerUser>
         </>
+      ) : (
+        <ItemsContainer>
+          <Button title="Login" onClick={() => navigate(LOGIN_PATH)} />
+          <Button title="Sign up" onClick={() => navigate(REGISTER_PATH)} />
+        </ItemsContainer>
       )}
     </Wrapper>
   );
